@@ -1,26 +1,42 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Trash2, Check, X, Circle } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, Pencil, Check, X, Circle, CheckCircle2, Clock } from "lucide-react";
 import TiraCombates from "./TiraCombates.jsx";
 
-export default function ParleyCard({ parley, combates, onDelete }) {
+export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggleApuesta, onRefresh }) {
   const [expanded, setExpanded] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const isVivo = parley.estado === "VIVO";
   const isGanado = parley.estado === "GANADO";
   const isDescartado = parley.estado === "DESCARTADO";
+  const isEnTriunfobet = parley.estadoApuesta === "EN_TRIUNFOBET";
 
   const badgeColor = isVivo
-    ? "text-vivo border-vivo/30 bg-vivo/5"
+    ? "text-vivo border-vivo/30 bg-vivo/10"
     : isGanado
-    ? "text-ganado border-ganado/30 bg-ganado/5"
-    : "text-descartado border-descartado/30 bg-descartado/5";
+    ? "text-ganado border-ganado/30 bg-ganado/10"
+    : "text-descartado border-descartado/30 bg-descartado/10";
 
   const handleDelete = async () => {
     if (deleting) return;
-    if (!confirm(`¿Borrar "${parley.nombre}"?`)) return;
+    if (!confirm(`¿Eliminar «${parley.nombre}»? No se puede deshacer.`)) return;
     setDeleting(true);
     await onDelete(parley.id);
+  };
+
+  const handleToggleApuesta = async (e) => {
+    e.stopPropagation();
+    if (toggling) return;
+    setToggling(true);
+    const newVal = isEnTriunfobet ? "POR_METER" : "EN_TRIUNFOBET";
+    await onToggleApuesta(parley.id, newVal, parley.estadoApuesta);
+    setToggling(false);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    onEdit(parley);
   };
 
   const sorted = [...combates].sort((a, b) => a.orden - b.orden);
@@ -41,8 +57,7 @@ export default function ParleyCard({ parley, combates, onDelete }) {
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs text-textoSec">
-            <span>{parley.aciertos}/{combates.length}</span>
-            <span>·</span>
+            <span className="tabular-nums">{parley.aciertos}/{combates.length}</span>
             <span>{parley.pendientes} pendiente{parley.pendientes !== 1 ? "s" : ""}</span>
             {parley.prob != null && (
               <>
@@ -58,6 +73,20 @@ export default function ParleyCard({ parley, combates, onDelete }) {
           )}
           <div className="mt-2">
             <TiraCombates picks={parley.picks} combates={combates} estado={parley.estado} />
+          </div>
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              onClick={handleToggleApuesta}
+              disabled={toggling}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider transition-all duration-150 ${
+                isEnTriunfobet
+                  ? "bg-ganado/15 text-ganado border border-ganado/30"
+                  : "bg-transparent text-vivo border border-vivo/40"
+              }`}
+            >
+              {isEnTriunfobet ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+              {isEnTriunfobet ? "EN TRIUNFOBET" : "POR METER"}
+            </button>
           </div>
         </div>
         <div className="shrink-0 mt-0.5 text-textoSec">
@@ -83,7 +112,7 @@ export default function ParleyCard({ parley, combates, onDelete }) {
             return (
               <div key={c.id} className="flex items-center gap-2 text-xs">
                 <span className={`w-4 ${color}`}>{icon}</span>
-                <span className="text-textoSec font-medium w-4">#{c.orden}</span>
+                <span className="text-textoSec font-medium w-4 tabular-nums">#{c.orden}</span>
                 <span className="text-texto">{c.ladoA}</span>
                 <span className="text-textoSec text-[10px]">vs</span>
                 <span className="text-texto">{c.ladoB}</span>
@@ -93,14 +122,23 @@ export default function ParleyCard({ parley, combates, onDelete }) {
               </div>
             );
           })}
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="mt-3 flex items-center gap-1.5 text-[10px] text-descartado hover:text-red-400 transition-colors disabled:opacity-50"
-          >
-            <Trash2 size={12} />
-            Eliminar parley
-          </button>
+          <div className="flex items-center gap-3 pt-2 border-t border-borde/20 mt-2">
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-1.5 text-[10px] text-textoSec hover:text-texto transition-colors py-2 px-1"
+            >
+              <Pencil size={12} />
+              Editar
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex items-center gap-1.5 text-[10px] text-descartado hover:text-red-400 transition-colors disabled:opacity-50 py-2 px-1"
+            >
+              <Trash2 size={12} />
+              Eliminar
+            </button>
+          </div>
         </div>
       )}
     </div>

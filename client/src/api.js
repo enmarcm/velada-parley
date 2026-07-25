@@ -74,10 +74,10 @@ export async function setResultado(combateId, resultado) {
   return data;
 }
 
-export async function checkDuplicado(picks) {
+export async function checkDuplicado(picks, excludeId) {
   return apiFetch("/api/parleys/check-duplicado", {
     method: "POST",
-    body: JSON.stringify({ picks }),
+    body: JSON.stringify({ picks, excludeId }),
   });
 }
 
@@ -89,8 +89,27 @@ export async function crearParley(nombre, picks) {
   return data;
 }
 
+export async function editarParley(id, nombre, picks) {
+  const data = await apiFetch(`/api/parleys/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ nombre, picks }),
+  });
+  saveCache(data);
+  return data;
+}
+
+export async function actualizarEstadoApuesta(id, estadoApuesta) {
+  const data = await apiFetch(`/api/parleys/${id}/estado-apuesta`, {
+    method: "PATCH",
+    body: JSON.stringify({ estadoApuesta }),
+  });
+  saveCache(data);
+  return data;
+}
+
 export async function borrarParley(id) {
   const data = await apiFetch(`/api/parleys/${id}`, { method: "DELETE" });
+  saveCache(data);
   return data;
 }
 
@@ -125,6 +144,10 @@ export async function flushQueue() {
         await setResultado(item.combateId, item.resultado);
       } else if (item.type === "crear") {
         await crearParley(item.nombre, item.picks);
+      } else if (item.type === "editar") {
+        await editarParley(item.id, item.nombre, item.picks);
+      } else if (item.type === "estado-apuesta") {
+        await actualizarEstadoApuesta(item.id, item.estadoApuesta);
       } else if (item.type === "borrar") {
         await borrarParley(item.id);
       } else if (item.type === "reset") {

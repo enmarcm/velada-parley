@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircle2, Clock } from "lucide-react";
 import Marcador from "./Marcador.jsx";
 import CombateActual from "./CombateActual.jsx";
 import ListaResueltos from "./ListaResueltos.jsx";
@@ -67,6 +68,11 @@ export default function EnVivo({ state, onSetResultado, onReset, showToast }) {
             {topParleys.map((p) => (
               <div key={p.id} className="flex items-center gap-2 py-2 px-3 rounded-xl bg-superficie/50 border border-borde/20">
                 <span className="font-display text-sm text-texto min-w-[60px] truncate">{p.nombre}</span>
+                <span className="shrink-0">
+                  {p.estadoApuesta === "EN_TRIUNFOBET"
+                    ? <CheckCircle2 size={10} className="text-ganado" />
+                    : <Clock size={10} className="text-vivo" />}
+                </span>
                 <div className="flex-1">
                   <TiraCombates picks={p.picks} combates={state.combates} estado={p.estado} />
                 </div>

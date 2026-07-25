@@ -8,9 +8,10 @@ import parleysRouter from "./routes/parleys.js";
 import adminRouter from "./routes/admin.js";
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8091;
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+const corsOrigins = (process.env.CORS_ORIGIN || "*").split(",").map(s => s.trim());
+app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(express.json());
 
 app.use((req, res, next) => {

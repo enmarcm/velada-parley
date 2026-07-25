@@ -26,7 +26,11 @@ INSERT INTO parleys (id, nombre, prob, orden_display) VALUES
  ('pm2','2DO MIO',0.2790,102),
  ('pm3','3RO MIO',0.2283,103),
  ('pm4','4TO MIO',0.2283,104),
- ('pm5','5TO MIO',0.2107,105)
+ ('pm5','5TO MIO',0.2107,105),
+ ('pm6','6TO MIO',0.2283,106),
+ ('pm7','7MO MIO',0.2283,107),
+ ('pm8','8VO MIO',0.1868,108),
+ ('pm9','9NO MIO',0.1528,109)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO parley_picks (parley_id, combate_id, pick) VALUES
@@ -104,5 +108,25 @@ INSERT INTO parley_picks (parley_id, combate_id, pick) VALUES
 ('pm5','c1','La Parce'),('pm5','c2','Clersss'),('pm5','c3','Gastón Edul'),
 ('pm5','c4','Marta Díaz'),('pm5','c5','Angie Velasco'),('pm5','c6','ByViruzz'),
 ('pm5','c7','Lit Killah'),('pm5','c8','RoRo'),('pm5','c9','YoSoyPlex'),
-('pm5','c10','TheGrefg')
+('pm5','c10','TheGrefg'),
+-- 6TO MIO
+('pm6','c1','Fabiana Sevillano'),('pm6','c2','Clersss'),('pm6','c3','Gastón Edul'),
+('pm6','c4','Marta Díaz'),('pm6','c5','Angie Velasco'),('pm6','c6','Gero Arias'),
+('pm6','c7','Lit Killah'),('pm6','c8','Samy Rivers'),('pm6','c9','YoSoyPlex'),
+('pm6','c10','TheGrefg'),
+-- 7MO MIO
+('pm7','c1','La Parce'),('pm7','c2','Natalia MX'),('pm7','c3','Gastón Edul'),
+('pm7','c4','Marta Díaz'),('pm7','c5','Angie Velasco'),('pm7','c6','Gero Arias'),
+('pm7','c7','Lit Killah'),('pm7','c8','Samy Rivers'),('pm7','c9','YoSoyPlex'),
+('pm7','c10','TheGrefg'),
+-- 8VO MIO
+('pm8','c1','Fabiana Sevillano'),('pm8','c2','Natalia MX'),('pm8','c3','Gastón Edul'),
+('pm8','c4','Marta Díaz'),('pm8','c5','Angie Velasco'),('pm8','c6','Gero Arias'),
+('pm8','c7','Lit Killah'),('pm8','c8','Samy Rivers'),('pm8','c9','YoSoyPlex'),
+('pm8','c10','TheGrefg'),
+-- 9NO MIO
+('pm9','c1','Fabiana Sevillano'),('pm9','c2','Clersss'),('pm9','c3','Gastón Edul'),
+('pm9','c4','Marta Díaz'),('pm9','c5','Angie Velasco'),('pm9','c6','Gero Arias'),
+('pm9','c7','Lit Killah'),('pm9','c8','RoRo'),('pm9','c9','YoSoyPlex'),
+('pm9','c10','IlloJuan')
 ON CONFLICT DO NOTHING;

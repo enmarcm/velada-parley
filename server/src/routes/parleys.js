@@ -33,6 +33,7 @@ function calcProb(picks) {
 }
 
 async function findDuplicado(picks, excludeId = null) {
+  const incomingIds = Object.keys(picks).sort().join(",");
   const { rows } = await pool.query(
     "SELECT parley_id, combate_id, pick FROM parley_picks ORDER BY parley_id, combate_id"
   );
@@ -43,11 +44,13 @@ async function findDuplicado(picks, excludeId = null) {
   }
   for (const [pid, pp] of Object.entries(picksByParley)) {
     if (excludeId && pid === excludeId) continue;
+    const existingIds = Object.keys(pp).sort().join(",");
+    if (existingIds !== incomingIds) continue;
     let match = true;
     for (const cid of Object.keys(picks)) {
       if (pp[cid] !== picks[cid]) { match = false; break; }
     }
-    if (match && Object.keys(pp).length === Object.keys(picks).length) {
+    if (match) {
       const { rows: pn } = await pool.query("SELECT id, nombre FROM parleys WHERE id = $1", [pid]);
       if (pn.length > 0) return { id: pn[0].id, nombre: pn[0].nombre };
     }

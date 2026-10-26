@@ -2,34 +2,23 @@ import { useState } from "react";
 import { CheckCircle2, Clock } from "lucide-react";
 import Marcador from "./Marcador.jsx";
 import CombateActual from "./CombateActual.jsx";
-import ListaResueltos from "./ListaResueltos.jsx";
+import SelectorCombates from "./SelectorCombates.jsx";
 import TiraCombates from "./TiraCombates.jsx";
 
-export default function EnVivo({ state, onSetResultado, onReset, showToast }) {
-  const [correcting, setCorrecting] = useState(null);
+export default function EnVivo({ state, onSetResultado, onReset }) {
+  const [selectedId, setSelectedId] = useState(null);
 
-  const pendientes = state.combates
-    .filter((c) => c.resultado == null)
-    .sort((a, b) => a.orden - b.orden);
+  const sorted = [...state.combates].sort((a, b) => a.orden - b.orden);
+  const pendientes = sorted.filter((c) => c.resultado == null);
+
+  const selected = selectedId
+    ? sorted.find((c) => c.id === selectedId)
+    : pendientes[0] || sorted[sorted.length - 1];
 
   const resueltosCount = state.resumen.combatesResueltos;
 
-  const current = correcting
-    ? state.combates.find((c) => c.id === correcting)
-    : pendientes[0] || null;
-
   const handleResultado = async (combateId, resultado) => {
     await onSetResultado(combateId, resultado);
-    setCorrecting(null);
-  };
-
-  const handleCorregir = (combateId) => {
-    setCorrecting(combateId);
-  };
-
-  const handleReset = async () => {
-    if (!confirm("¿Reiniciar todos los resultados? Los parleys se conservan.")) return;
-    await onReset();
   };
 
   const topParleys = state.parleys
@@ -41,27 +30,25 @@ export default function EnVivo({ state, onSetResultado, onReset, showToast }) {
     <div className="pb-24">
       <Marcador resumen={state.resumen} />
 
-      <div className="px-4 text-xs text-textoSec text-center mt-1 mb-2">
-        {pendientes.length > 0
-          ? `Aún no empieza. Marca el ganador cuando termine el combate.`
-          : `Velada completa`}
-      </div>
-
-      <CombateActual
-        combate={current}
-        onResultado={handleResultado}
-        onCorregir={handleCorregir}
-      />
-
-      <ListaResueltos
-        combates={state.combates}
-        onCorregir={handleCorregir}
+      <SelectorCombates
+        combates={sorted}
+        selected={selected}
+        onSelect={setSelectedId}
         resueltosCount={resueltosCount}
       />
 
+      <div className="mx-4 mb-3 bg-superficie border border-borde rounded-2xl overflow-hidden" style={{ boxShadow: "0 0 40px -12px rgba(245,166,35,0.25)" }}>
+        <CombateActual
+          key={selected.id}
+          combate={selected}
+          onResultado={handleResultado}
+          animKey={selected.id}
+        />
+      </div>
+
       {topParleys.length > 0 && (
         <div className="px-4 mt-4">
-          <div className="text-xs uppercase tracking-widest text-textoSec font-semibold mb-2">
+          <div className="text-xs uppercase tracking-widest text-textoSec font-semibold mb-2 px-1">
             Vivos al frente
           </div>
           <div className="space-y-2">
@@ -76,7 +63,7 @@ export default function EnVivo({ state, onSetResultado, onReset, showToast }) {
                 <div className="flex-1">
                   <TiraCombates picks={p.picks} combates={state.combates} estado={p.estado} />
                 </div>
-                <span className="text-[10px] text-vivo font-semibold tabular-nums">{p.aciertos}/10</span>
+                <span className="text-[10px] text-vivo font-semibold tabular-nums">{p.aciertos}/{Object.keys(p.picks).length}</span>
               </div>
             ))}
           </div>
@@ -86,7 +73,7 @@ export default function EnVivo({ state, onSetResultado, onReset, showToast }) {
       {resueltosCount > 0 && (
         <div className="px-4 mt-6">
           <button
-            onClick={handleReset}
+            onClick={onReset}
             className="block mx-auto text-[10px] text-descartado/60 hover:text-descartado transition-colors underline underline-offset-2"
           >
             Reiniciar noche

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Trash2, Pencil, Check, X, Circle, CheckCircle2, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, Trash2, Pencil, Check, X, Circle, CheckCircle2, Clock, Send, BookmarkCheck, Minus } from "lucide-react";
 import TiraCombates from "./TiraCombates.jsx";
 
 export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggleApuesta, onRefresh }) {
@@ -11,6 +11,8 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
   const isGanado = parley.estado === "GANADO";
   const isDescartado = parley.estado === "DESCARTADO";
   const isEnTriunfobet = parley.estadoApuesta === "EN_TRIUNFOBET";
+  const totalBets = parley.totalCombates || Object.keys(parley.picks).length;
+  const isPartial = totalBets < 10;
 
   const badgeColor = isVivo
     ? "text-vivo border-vivo/30 bg-vivo/10"
@@ -20,7 +22,7 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
 
   const handleDelete = async () => {
     if (deleting) return;
-    if (!confirm(`¿Eliminar «${parley.nombre}»? No se puede deshacer.`)) return;
+    if (!confirm(`Eliminar «${parley.nombre}»? No se puede deshacer.`)) return;
     setDeleting(true);
     await onDelete(parley.id);
   };
@@ -44,7 +46,7 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
   return (
     <div className={`rounded-2xl border ${
       isDescartado ? "border-borde/20 opacity-60" : "border-borde"
-    } bg-superficie overflow-hidden transition-all`}>
+    } bg-superficie overflow-hidden transition-all duration-240`}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full p-4 flex items-start gap-3 text-left"
@@ -55,9 +57,14 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
             <span className={`text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border ${badgeColor}`}>
               {parley.estado}
             </span>
+            {isPartial && (
+              <span className="text-[9px] text-textoSec/60 font-medium px-1.5 py-0.5 rounded border border-borde/30">
+                {totalBets} combates
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 text-xs text-textoSec">
-            <span className="tabular-nums">{parley.aciertos}/{combates.length}</span>
+            <span className="tabular-nums">{parley.aciertos}/{totalBets}</span>
             <span>{parley.pendientes} pendiente{parley.pendientes !== 1 ? "s" : ""}</span>
             {parley.prob != null && (
               <>
@@ -74,20 +81,6 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
           <div className="mt-2">
             <TiraCombates picks={parley.picks} combates={combates} estado={parley.estado} />
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              onClick={handleToggleApuesta}
-              disabled={toggling}
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider transition-all duration-150 ${
-                isEnTriunfobet
-                  ? "bg-ganado/15 text-ganado border border-ganado/30"
-                  : "bg-transparent text-vivo border border-vivo/40"
-              }`}
-            >
-              {isEnTriunfobet ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-              {isEnTriunfobet ? "EN TRIUNFOBET" : "POR METER"}
-            </button>
-          </div>
         </div>
         <div className="shrink-0 mt-0.5 text-textoSec">
           {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -98,8 +91,12 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
         <div className="px-4 pb-4 pt-0 space-y-1.5">
           {sorted.map((c) => {
             const pick = parley.picks[c.id];
+            const isIncluded = pick != null;
             let icon, color;
-            if (c.resultado == null) {
+            if (!isIncluded) {
+              icon = <Minus size={12} />;
+              color = "text-textoSec/40";
+            } else if (c.resultado == null) {
               icon = <Circle size={12} />;
               color = "text-textoSec/50";
             } else if (c.resultado === pick) {
@@ -110,18 +107,39 @@ export default function ParleyCard({ parley, combates, onDelete, onEdit, onToggl
               color = "text-descartado";
             }
             return (
-              <div key={c.id} className="flex items-center gap-2 text-xs">
+              <div key={c.id} className={`flex items-center gap-2 text-xs ${!isIncluded ? "opacity-40" : ""}`}>
                 <span className={`w-4 ${color}`}>{icon}</span>
                 <span className="text-textoSec font-medium w-4 tabular-nums">#{c.orden}</span>
                 <span className="text-texto">{c.ladoA}</span>
                 <span className="text-textoSec text-[10px]">vs</span>
                 <span className="text-texto">{c.ladoB}</span>
-                <span className="text-textoSec ml-auto">
-                  {pick ? pick : "—"}
+                <span className={`ml-auto text-[10px] ${isIncluded ? "text-textoSec" : "text-textoSec/40 italic"}`}>
+                  {isIncluded ? pick : "No incluido"}
                 </span>
               </div>
             );
           })}
+          <button
+            onClick={handleToggleApuesta}
+            disabled={toggling}
+            className={`w-full mt-3 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-[10px] font-semibold uppercase tracking-wider transition-all duration-160 ${
+              isEnTriunfobet
+                ? "bg-ganado/15 text-ganado border border-ganado/30"
+                : "bg-fondo text-vivo border border-dashed border-vivo/40 hover:border-vivo/70"
+            }`}
+          >
+            {isEnTriunfobet ? (
+              <>
+                <BookmarkCheck size={14} />
+                En TriunfoBet
+              </>
+            ) : (
+              <>
+                <Send size={14} />
+                Marcar como metido
+              </>
+            )}
+          </button>
           <div className="flex items-center gap-3 pt-2 border-t border-borde/20 mt-2">
             <button
               onClick={handleEdit}

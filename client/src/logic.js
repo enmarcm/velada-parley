@@ -4,6 +4,7 @@ export function estadoParley(picks, combates) {
   const porOrden = [...combates].sort((a, b) => a.orden - b.orden);
   for (const c of porOrden) {
     const pick = picks[c.id];
+    if (pick == null) continue;
     if (c.resultado == null) {
       pendientes++;
       if (dependeDe == null) dependeDe = c;
@@ -13,6 +14,7 @@ export function estadoParley(picks, combates) {
       fallos++;
     }
   }
+  const totalCombates = Object.keys(picks).length;
   let estado;
   if (fallos > 0) estado = "DESCARTADO";
   else if (pendientes === 0) estado = "GANADO";
@@ -22,6 +24,7 @@ export function estadoParley(picks, combates) {
     aciertos,
     fallos,
     pendientes,
+    totalCombates,
     dependeDe: estado === "VIVO" ? dependeDe : null,
   };
 }

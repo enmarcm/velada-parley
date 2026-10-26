@@ -35,6 +35,7 @@ export async function buildState() {
       aciertos: calc.aciertos,
       fallos: calc.fallos,
       pendientes: calc.pendientes,
+      totalCombates: calc.totalCombates,
       dependeDe,
       estadoApuesta: p.estado_apuesta || "POR_METER",
     };

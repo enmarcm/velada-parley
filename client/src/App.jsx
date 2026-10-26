@@ -1,9 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getState, getCachedState, setResultado, resetNoche, flushQueue } from "./api.js";
 import { estadoParley, resumenParleys, combatesResueltosCount } from "./logic.js";
-import Marcador from "./components/Marcador.jsx";
-import CombateActual from "./components/CombateActual.jsx";
-import ListaResueltos from "./components/ListaResueltos.jsx";
 import EnVivo from "./components/EnVivo.jsx";
 import ParleysView from "./components/ParleysView.jsx";
 import TabBar from "./components/TabBar.jsx";
@@ -15,10 +12,14 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [connected, setConnected] = useState(true);
   const [loading, setLoading] = useState(!state);
+  const prevResumen = useRef(state?.resumen);
 
   const showToast = useCallback((msg, type = "info") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    setToast({ msg, type, id: Date.now() });
+  }, []);
+
+  const dismissToast = useCallback(() => {
+    setToast(null);
   }, []);
 
   const fetchState = useCallback(async () => {
@@ -58,13 +59,13 @@ export default function App() {
       const newState = await setResultado(combateId, resultado);
       setState(newState);
       if (newState.impacto) {
-        const { descartadosNuevos, ganadosNuevos, vivosRestantes } = newState.impacto;
+        const { descartadosNuevos, ganadosNuevos } = newState.impacto;
         if (descartadosNuevos > 0 && ganadosNuevos > 0) {
-          showToast(`−${descartadosNuevos} parleys · ¡${ganadosNuevos} ganado${ganadosNuevos > 1 ? "s" : ""}!`, "info");
+          showToast(`${descartadosNuevos} parley${descartadosNuevos > 1 ? "s" : ""} caído${descartadosNuevos > 1 ? "s" : ""} · ${ganadosNuevos} ganado${ganadosNuevos > 1 ? "s" : ""}`, "info");
         } else if (descartadosNuevos > 0) {
-          showToast(`−${descartadosNuevos} parley${descartadosNuevos > 1 ? "s" : ""} descartado${descartadosNuevos > 1 ? "s" : ""}`, "error");
+          showToast(`${descartadosNuevos} parley${descartadosNuevos > 1 ? "s" : ""} descartado${descartadosNuevos > 1 ? "s" : ""}`, "error");
         } else if (ganadosNuevos > 0) {
-          showToast(`¡${ganadosNuevos} parley${ganadosNuevos > 1 ? "s" : ""} ganado${ganadosNuevos > 1 ? "s" : ""}!`, "success");
+          showToast(`${ganadosNuevos} parley${ganadosNuevos > 1 ? "s" : ""} ganado${ganadosNuevos > 1 ? "s" : ""}`, "success");
         } else {
           showToast("Todos siguen vivos", "success");
         }
@@ -109,41 +110,59 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-fondo">
-        <div className="animate-pulse text-vivo font-display text-2xl">PARLEYS</div>
+      <div className="min-h-screen flex items-center justify-center bg-fondo relative">
+        <div className="noise-bg" />
+        <div className="text-center">
+          <div className="flex gap-1.5 justify-center mb-4">
+            {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+              <div key={n} className="w-6 h-[18px] rounded-sm bg-superficie border border-borde/50 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-skeletonShimmer" />
+              </div>
+            ))}
+          </div>
+          <div className="w-32 h-5 mx-auto rounded bg-superficie relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-skeletonShimmer" />
+          </div>
+          <div className="mt-2 w-20 h-3 mx-auto rounded bg-superficie/50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-skeletonShimmer" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-fondo text-texto font-body pb-20 max-w-[480px] mx-auto relative">
-      {!connected && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-descartado/90 text-white text-center text-xs py-1 font-medium">
-          Sin conexión con el servidor. Mostrando lo último guardado.
-        </div>
-      )}
+    <div className="min-h-screen bg-fondo text-texto font-body pb-20 max-w-[480px] mx-auto relative noise-container">
+      <div className="noise-bg" />
+      <div className="relative z-0">
+        {!connected && (
+          <div className="fixed top-0 left-0 right-0 z-50 bg-descartado/90 text-white text-center text-xs py-1 font-medium" style={{ paddingTop: "calc(0.25rem + var(--safe-top))" }}>
+            Sin conexión con el servidor. Mostrando lo último guardado.
+          </div>
+        )}
 
-      {tab === "envivo" && state && (
-        <EnVivo
-          state={state}
-          onSetResultado={handleSetResultado}
-          onReset={handleReset}
-          showToast={showToast}
-          refreshState={refreshState}
-        />
-      )}
+        {tab === "envivo" && state && (
+          <EnVivo
+            state={state}
+            onSetResultado={handleSetResultado}
+            onReset={handleReset}
+          />
+        )}
 
-      {tab === "parleys" && state && (
-        <ParleysView
-          state={state}
-          onRefresh={refreshState}
-          showToast={showToast}
-        />
-      )}
+        {tab === "parleys" && state && (
+          <ParleysView
+            state={state}
+            onRefresh={refreshState}
+            showToast={showToast}
+          />
+        )}
 
-      <TabBar active={tab} onChange={setTab} />
+        <TabBar active={tab} onChange={setTab} />
 
-      {toast && <Toast msg={toast.msg} type={toast.type} />}
+        {toast && (
+          <Toast key={toast.id} msg={toast.msg} type={toast.type} onDone={dismissToast} />
+        )}
+      </div>
     </div>
   );
 }

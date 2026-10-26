@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import ParleyCard from "./ParleyCard.jsx";
 import ParleyModal from "./ParleyModal.jsx";
-import { borrarParley, actualizarEstadoApuesta, enqueuePending } from "../api.js";
+import { borrarParley, actualizarEstadoApuesta } from "../api.js";
 
 export default function ParleysView({ state, onRefresh, showToast }) {
   const [showModal, setShowModal] = useState(false);
@@ -67,17 +67,17 @@ export default function ParleysView({ state, onRefresh, showToast }) {
 
       <div className="flex gap-3 text-sm font-semibold mb-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-vivo font-display text-lg tabular-nums">{state.resumen.vivos}</span>
+          <span className="text-vivo font-display text-lg tabular-nums tracking-[-0.02em]">{state.resumen.vivos}</span>
           <span className="text-textoSec text-[10px] uppercase tracking-wider">Vivos</span>
         </div>
         {state.resumen.ganados > 0 && (
           <div className="flex items-center gap-1.5">
-            <span className="text-ganado font-display text-lg tabular-nums">{state.resumen.ganados}</span>
+            <span className="text-ganado font-display text-lg tabular-nums tracking-[-0.02em]">{state.resumen.ganados}</span>
             <span className="text-textoSec text-[10px] uppercase tracking-wider">Ganados</span>
           </div>
         )}
         <div className="flex items-center gap-1.5">
-          <span className="text-descartado font-display text-lg tabular-nums">{state.resumen.descartados}</span>
+          <span className="text-descartado font-display text-lg tabular-nums tracking-[-0.02em]">{state.resumen.descartados}</span>
           <span className="text-textoSec text-[10px] uppercase tracking-wider">Descartados</span>
         </div>
         <div className="flex-1" />
@@ -93,10 +93,10 @@ export default function ParleysView({ state, onRefresh, showToast }) {
           <button
             key={f.id}
             onClick={() => setFiltro(f.id)}
-            className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-colors ${
+            className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all duration-160 ${
               filtro === f.id
                 ? "bg-vivo/20 text-vivo border border-vivo/40"
-                : "text-textoSec border border-borde/50 hover:text-texto"
+                : "text-textoSec border border-borde/50 hover:text-texto hover:border-borde"
             }`}
           >
             {f.label}
